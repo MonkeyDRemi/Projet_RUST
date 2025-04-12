@@ -6,7 +6,21 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::collections::HashMap; 
 
 fn handle_client_ssh(mut stream: TcpStream) {
-   
+    println!("\n[+] Connexion SSH !");
+    println!("Client: {}", stream.peer_addr().unwrap());
+
+    stream.write_all(b"login as: ").expect("Erreur d'écriture");
+    stream.flush().unwrap();
+
+    let mut reader = BufReader::new(stream.try_clone().expect("Erreur clone stream"));
+    let mut buffer = String::new();
+
+    buffer.clear();
+    reader.read_line(&mut buffer).expect("Erreur lecture login");
+    let login = buffer.trim().to_string();
+
+    stream.write_all(format!("{}@ubuntu's password: ", login).as_bytes()).expect("Erreur d'écriture");
+    stream.flush().unwrap();
 }
 
 fn main() -> std::io::Result<()> {
