@@ -21,6 +21,22 @@ fn handle_client_ssh(mut stream: TcpStream) {
 
     stream.write_all(format!("{}@ubuntu's password: ", login).as_bytes()).expect("Erreur d'écriture");
     stream.flush().unwrap();
+    
+    buffer.clear();
+    reader.read_line(&mut buffer).expect("Erreur lecture mdp");
+    let password = buffer.trim().to_string();
+
+    if login != "admin" || password != "admin-techpro" {
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+        stream.write_all(b"Permission denied, please try again.\r\n").unwrap();
+        println!("[-] Identifiants incorrects pour {}/{}", login, password);
+        writeln!(log_file, "[{}] Identifiants incorrects pour {}/{} de l'ip {}",now.as_secs(),login, password, stream.peer_addr().unwrap()).expect("Erreur d'écriture dans le fichier log");
+        return;
+    }
+
+    stream.write_all(b"\r\nWelcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0-42-generic x86_64)\r\n\r\n").unwrap();
+    stream.flush().unwrap();
+    println!("[+] Authentification réussie pour {}", login);
 }
 
 fn main() -> std::io::Result<()> {
