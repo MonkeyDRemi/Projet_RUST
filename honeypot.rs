@@ -37,6 +37,18 @@ fn handle_client_ssh(mut stream: TcpStream) {
     stream.write_all(b"\r\nWelcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.4.0-42-generic x86_64)\r\n\r\n").unwrap();
     stream.flush().unwrap();
     println!("[+] Authentification réussie pour {}", login);
+
+
+    let mut current_dir = "~".to_string();
+
+    let mut directories: HashMap<&str, Vec<&str>> = HashMap::new();
+    directories.insert("/Desktop", vec![]);
+    directories.insert("/Downloads", vec![]);
+    directories.insert("/Documents", vec![]);
+    directories.insert("/tmp", vec!["backup.sh"]);
+    directories.insert("/home", vec!["/user"]);
+    directories.insert("user", vec!["Desktop  Documents Downloads Music Pictures  Public Templates  Videos"]);
+    directories.insert("/var", vec![]);
 }
 
 fn main() -> std::io::Result<()> {
