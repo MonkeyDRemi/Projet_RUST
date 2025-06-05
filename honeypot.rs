@@ -49,6 +49,59 @@ fn handle_client_ssh(mut stream: TcpStream) {
     directories.insert("/home", vec!["/user"]);
     directories.insert("user", vec!["Desktop  Documents Downloads Music Pictures  Public Templates  Videos"]);
     directories.insert("/var", vec![]);
+    
+    loop {
+        let prompt = format!("user@ubuntu:{}$ ", current_dir);
+        stream.write_all(prompt.as_bytes()).unwrap();
+        stream.flush().unwrap();
+        
+        buffer.clear();
+        match reader.read_line(&mut buffer) {
+            Ok(0) => {
+                println!("[-] Le client a fermé la connexion.");
+                break;
+            }
+            Ok(_) => {
+                let input = buffer.trim();
+
+                match input {
+                    "ls" => {
+                        if current_dir == "~" {
+                            stream.write_all(b"Desktop  Documents Downloads Music Pictures  Public Templates  Videos\r\n").unwrap();
+                        } else if directories.contains_key(current_dir.as_str()) {
+                            let files = directories.get(current_dir.as_str()).unwrap();
+                            if files.is_empty() {
+                                stream.write_all(b"\r\n").unwrap();
+                            } else {
+                                let content = files.join("  ");
+                                stream.write_all(format!("{}\r\n", content).as_bytes()).unwrap();
+                            }
+                        } else {
+                            stream.write_all(b"Desktop  Documents Downloads Music Pictures  Public Templates  Videos\r\n").unwrap();
+                        }
+                    }
+                    "exit" | "logout" => {
+                        stream.write_all(b"logout\r\n").unwrap();
+                        break;
+                    }
+                    "" => {
+
+                    }
+                    _ => {
+                        stream.write_all(format!("{}: command not found\r\n", input).as_bytes()).unwrap();
+                    }
+                }
+                stream.flush().unwrap();
+            }
+            Err(e) => {
+                println!("[!] Erreur de lecture : {}", e);
+                break;
+            }
+        }
+    }
+    
+    println!("[-] Connexion fermée pour {}", stream.peer_addr().unwrap());
+
 }
 
 fn main() -> std::io::Result<()> {
