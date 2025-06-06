@@ -80,6 +80,31 @@ fn handle_client_ssh(mut stream: TcpStream) {
                             stream.write_all(b"Desktop  Documents Downloads Music Pictures  Public Templates  Videos\r\n").unwrap();
                         }
                     }
+                    "ls -al" | "ls -la" => {
+                        if current_dir == "/tmp" {
+                            stream.write_all(b"total 12\r\n").unwrap();
+                            stream.write_all(b"drwxrwxrwt  3 root root 4096 Jan 15 10:30 .\r\n").unwrap();
+                            stream.write_all(b"drwxr-xr-x 20 root root 4096 Jan 15 09:15 ..\r\n").unwrap();
+                            stream.write_all(b"-rwxrwxrwx  1 user user 1337 Jan 15 10:29 backup.sh.txt\r\n").unwrap();
+                        } else if current_dir == "~" {
+                            stream.write_all(b"total 32\r\n").unwrap();
+                            stream.write_all(b"drwxr-xr-x 9 user user 4096 Jan 15 10:30 .\r\n").unwrap();
+                            stream.write_all(b"drwxr-xr-x 3 root root 4096 Jan 15 09:15 ..\r\n").unwrap();
+                            stream.write_all(b"drwxr-xr-x 2 user user 4096 Jan 15 10:00 Desktop\r\n").unwrap();
+                            stream.write_all(b"drwxr-xr-x 2 user user 4096 Jan 15 10:00 Documents\r\n").unwrap();
+                            stream.write_all(b"drwxr-xr-x 2 user user 4096 Jan 15 10:00 Downloads\r\n").unwrap();
+                            stream.write_all(b"drwxr-xr-x 2 user user 4096 Jan 15 10:00 Music\r\n").unwrap();
+                            stream.write_all(b"drwxr-xr-x 2 user user 4096 Jan 15 10:00 Pictures\r\n").unwrap();
+                            stream.write_all(b"drwxr-xr-x 2 user user 4096 Jan 15 10:00 Public\r\n").unwrap();
+                            stream.write_all(b"drwxr-xr-x 2 user user 4096 Jan 15 10:00 Templates\r\n").unwrap();
+                            stream.write_all(b"drwxr-xr-x 2 user user 4096 Jan 15 10:00 Videos\r\n").unwrap();
+                        } else {
+                            stream.write_all(b"total 0\r\n").unwrap();
+                        }
+                    }
+                    "hostname" => {
+                        stream.write_all(b"ubuntu\r\n").unwrap();
+                    }
                     "exit" | "logout" => {
                         stream.write_all(b"logout\r\n").unwrap();
                         break;
