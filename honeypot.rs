@@ -105,6 +105,29 @@ fn handle_client_ssh(mut stream: TcpStream) {
                     "hostname" => {
                         stream.write_all(b"ubuntu\r\n").unwrap();
                     }
+                    cmd if cmd.starts_with("cd ") => {
+                        let parts: Vec<&str> = cmd.split_whitespace().collect();
+                        if parts.len() >= 2 {
+                            let target = parts[1];
+                            if directories.contains_key(target) {
+                                current_dir = target.to_string();
+                            } else {
+                                stream.write_all(format!("bash: cd: {}: No such file or directory\r\n", target).as_bytes()).unwrap();
+                            }
+                        } else {
+                            current_dir = "~".to_string();
+                        }
+                    }
+                    cmd if cmd.contains("wget") => {
+                        let parts: Vec<&str> = cmd.split_whitespace().collect();
+                        
+                        if parts.len() >= 2 {
+                            let url = parts[1];
+                            stream.write_all(format!("Download {} done                                    100% 1337     1.2MB/s   00:00\r\n",url).as_bytes()).unwrap();
+                        } else {
+                            stream.write_all(b"usage: wget [url]\r\n").unwrap();
+                        }
+                    }
                     "exit" | "logout" => {
                         stream.write_all(b"logout\r\n").unwrap();
                         break;
