@@ -128,6 +128,25 @@ fn handle_client_ssh(mut stream: TcpStream) {
                             stream.write_all(b"usage: wget [url]\r\n").unwrap();
                         }
                     }
+                    cmd if cmd.contains("curl") => {
+                        stream.write_all(b"  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\r\n").unwrap();
+                        stream.write_all(b"                                 Dload  Upload   Total   Spent    Left  Speed\r\n").unwrap();
+                        stream.write_all(b"100  1337  100  1337    0     0   2.1M      0 --:--:-- --:--:-- --:--:--  2.1M\r\n").unwrap();
+                    }
+                    cmd if cmd.contains("scp") => {
+                        let parts: Vec<&str> = cmd.split_whitespace().collect();
+                        
+                        if parts.len() >= 3 {
+                            let file = parts[1];
+                            let target = parts[2];
+                            stream.write_all(format!(
+                                "{}                                    100% 1337     1.2MB/s   00:00\r\n",
+                                format!("{}:{}", target, file)
+                            ).as_bytes()).unwrap();
+                        } else {
+                            stream.write_all(b"usage: scp [source] [target]\r\n").unwrap();
+                        }
+                    }
                     "exit" | "logout" => {
                         stream.write_all(b"logout\r\n").unwrap();
                         break;
