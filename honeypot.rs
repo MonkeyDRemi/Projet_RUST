@@ -147,6 +147,24 @@ fn handle_client_ssh(mut stream: TcpStream) {
                             stream.write_all(b"usage: scp [source] [target]\r\n").unwrap();
                         }
                     }
+                    "pwd" => {
+                        if current_dir == "~" {
+                            stream.write_all(b"/home/user\r\n").unwrap();
+                        } else {
+                            stream.write_all(format!("{}\r\n", current_dir).as_bytes()).unwrap();
+                        }
+                    }
+                    "id" => {
+                        stream.write_all(b"uid=1000(user) gid=1000(user) groups=1000(user)\r\n").unwrap();
+                    }
+                    "whoami" => {
+                        stream.write_all(b"user\r\n").unwrap();
+                    }
+                    "ps" => {
+                        stream.write_all(b"  PID TTY          TIME CMD\r\n").unwrap();
+                        stream.write_all(b" 2809 pts/0    00:00:00 bash\r\n").unwrap();
+                        stream.write_all(b" 3737 pts/0    00:00:00 ps\r\n").unwrap();
+                    }
                     "exit" | "logout" => {
                         stream.write_all(b"logout\r\n").unwrap();
                         break;
