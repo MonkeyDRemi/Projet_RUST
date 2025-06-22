@@ -157,6 +157,23 @@ fn handle_client_ssh(mut stream: TcpStream) {
                     "id" => {
                         stream.write_all(b"uid=1000(user) gid=1000(user) groups=1000(user)\r\n").unwrap();
                     }
+                    cmd if cmd.starts_with("sudo") => {
+                        stream.write_all(b"[sudo] password for user: ").unwrap();
+                        stream.flush().unwrap();
+
+                        let mut pw_buffer = Vec::new();
+                        let mut reader = std::io::BufReader::new(&stream);
+                        use std::io::BufRead;
+
+                        match reader.read_until(b'\n', &mut pw_buffer) {
+                            Ok(_) => {
+                                stream.write_all(b"Sorry, try again.\r\n").unwrap();
+                            }
+                            Err(_) => {
+                                stream.write_all(b"\r\n").unwrap();
+                            }
+                        }
+                    }
                     "whoami" => {
                         stream.write_all(b"user\r\n").unwrap();
                     }
@@ -164,6 +181,15 @@ fn handle_client_ssh(mut stream: TcpStream) {
                         stream.write_all(b"  PID TTY          TIME CMD\r\n").unwrap();
                         stream.write_all(b" 2809 pts/0    00:00:00 bash\r\n").unwrap();
                         stream.write_all(b" 3737 pts/0    00:00:00 ps\r\n").unwrap();
+                    }
+                    "cat /etc/passwd" => {
+                        stream.write_all(b"root:x:0:0:root:/root:/bin/bash\r\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\r\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\r\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\r\nsync:x:4:65534:sync:/bin:/bin/sync\r\ngames:x:5:60:games:/usr/games:/usr/sbin/nologin\r\nman:x:6:12:man:/var/cache/man:/usr/sbin/nologin\r\nlp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\r\nmail:x:8:8:mail:/var/mail:/usr/sbin/nologin\r\nnews:x:9:9:news:/var/spool/news:/usr/sbin/nologin\r\nuucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin\r\nproxy:x:13:13:proxy:/bin:/usr/sbin/nologin\r\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\r\nbackup:x:34:34:backup:/var/backups:/usr/sbin/nologin\r\nlist:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin\r\nirc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin\r\ngnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin\r\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\r\nsystemd-network:x:100:102:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin\r\nsystemd-resolve:x:101:103:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin\r\nsystemd-timesync:x:102:104:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin\r\nmessagebus:x:103:106::/nonexistent:/usr/sbin/nologin\r\nsyslog:x:104:110::/home/syslog:/usr/sbin/nologin\r\n_apt:x:105:65534::/nonexistent:/usr/sbin/nologin\r\ntss:x:106:111:TPM software stack,,,:/var/lib/tpm:/bin/false\r\nuuidd:x:107:114::/run/uuidd:/usr/sbin/nologin\r\ntcpdump:x:108:115::/nonexistent:/usr/sbin/nologin\r\navahi-autoipd:x:109:116:Avahi autoip daemon,,,:/var/lib/avahi-autoipd:/usr/sbin/nologin\r\nusbmux:x:110:46:usbmux daemon,,,:/var/lib/usbmux:/usr/sbin/nologin\r\nrtkit:x:111:117:RealtimeKit,,,:/proc:/usr/sbin/nologin\r\ndnsmasq:x:112:65534:dnsmasq,,,:/var/lib/misc:/usr/sbin/nologin\r\ncups-pk-helper:x:113:120:user for cups-pk-helper service,,,:/home/cups-pk-helper:/usr/sbin/nologin\r\nspeech-dispatcher:x:114:29:Speech Dispatcher,,,:/run/speech-dispatcher:/bin/false\r\navahi:x:115:121:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/usr/sbin/nologin\r\nkernoops:x:116:65534:Kernel Oops Tracking Daemon,,,:/:/usr/sbin/nologin\r\nsaned:x:117:123::/var/lib/saned:/usr/sbin/nologin\r\nnm-openvpn:x:118:124:NetworkManager OpenVPN,,,:/var/lib/openvpn/chroot:/usr/sbin/nologin\r\nhplip:x:119:7:HPLIP system user,,,:/run/hplip:/bin/false\r\nwhoopsie:x:120:125::/nonexistent:/bin/false\r\ncolord:x:121:126:colord colour management daemon,,,:/var/lib/colord:/usr/sbin/nologin\r\nfwupd-refresh:x:122:127:fwupd-refresh user,,,:/run/systemd:/usr/sbin/nologin\r\ngeoclue:x:123:128::/var/lib/geoclue:/usr/sbin/nologin\r\npulse:x:124:129:PulseAudio daemon,,,:/var/run/pulse:/usr/sbin/nologin\r\ngnome-initial-setup:x:125:65534::/run/gnome-initial-setup/:/bin/false\r\ngdm:x:126:131:Gnome Display Manager:/var/lib/gdm3:/bin/false\r\nsssd:x:127:132:SSSD system user,,,:/var/lib/sss:/usr/sbin/nologin\r\nuser:x:1000:1000:Ubuntu test,,,:/home/user:/bin/bash\r\nsystemd-coredump:x:999:999:systemd Core Dumper:/:/usr/sbin/nologin\r\nepmd:x:128:136::/var/run/epmd:/usr/sbin/nologin\r\nsshd:x:129:65534::/run/sshd:/usr/sbin/nologin\r\n").unwrap();
+                    }
+                    "cat /etc/group" => {
+                        stream.write_all(b"root:x:0:\r\ndaemon:x:1:\r\nbin:x:2:\r\nsys:x:3:\r\nadm:x:4:syslog,user\r\ntty:x:5:syslog\r\ndisk:x:6:\r\nlp:x:7:\r\nmail:x:8:\r\nnews:x:9:\r\nuucp:x:10:\r\nman:x:12:\r\nproxy:x:13:\r\nkmem:x:15:\r\ndialout:x:20:\r\nfax:x:21:\r\nvoice:x:22:\r\ncdrom:x:24:user\r\nfloppy:x:25:\r\ntape:x:26:\r\nsudo:x:27:user\r\naudio:x:29:pulse\r\ndip:x:30:user\r\nwww-data:x:33:\r\nbackup:x:34:\r\noperator:x:37:\r\nlist:x:38:\r\nirc:x:39:\r\nsrc:x:40:\r\ngnats:x:41:\r\nshadow:x:42:\r\nutmp:x:43:\r\nvideo:x:44:\r\nsasl:x:45:\r\nplugdev:x:46:user\r\nstaff:x:50:\r\ngames:x:60:\r\nusers:x:100:\r\nnogroup:x:65534:\r\nsystemd-journal:x:101:\r\nsystemd-network:x:102:\r\nsystemd-resolve:x:103:\r\nsystemd-timesync:x:104:\r\ncrontab:x:105:\r\nmessagebus:x:106:\r\ninput:x:107:\r\nkvm:x:108:\r\nrender:x:109:\r\nsyslog:x:110:\r\ntss:x:111:\r\nbluetooth:x:112:\r\nssl-cert:x:113:\r\nuuidd:x:114:\r\ntcpdump:x:115:\r\navahi-autoipd:x:116:\r\nrtkit:x:117:\r\nssh:x:118:\r\nnetdev:x:119:\r\nlpadmin:x:120:user\r\navahi:x:121:\r\nscanner:x:122:saned\r\nsaned:x:123:\r\nnm-openvpn:x:124:\r\nwhoopsie:x:125:\r\ncolord:x:126:\r\nfwupd-refresh:x:127:\r\ngeoclue:x:128:\r\npulse:x:129:\r\npulse-access:x:130:\r\ngdm:x:131:\r\nsssd:x:132:\r\nlxd:x:133:user\r\nuser:x:1000:\r\nsambashare:x:134:user\r\nsystemd-coredump:x:999:\r\nrdma:x:135:\r\nepmd:x:136:\r\n").unwrap();
+                    }
+                    "cat ~/.ssh/authorized_keys" => {
+                        stream.write_all(b"ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAvkY9vDBt8nGp7L5MiulbOY2DBRrF2JjT3vAaF4e3y2jRgoJmCFX/7QzBcIYUpbfUkuzf+qQ9UXE8F5L6uwU7CbWZft9fM8z8c3n8kgzGw6yQ7Q1vAkHVJ5HZk5h8VtfTYGuRhD1EfWuv0GqYxl7YO+Wv5nYm0wGZrZD1XzDhQ== user@ubuntu\r\n").unwrap();
                     }
                     "exit" | "logout" => {
                         stream.write_all(b"logout\r\n").unwrap();
