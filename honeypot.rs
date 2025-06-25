@@ -191,6 +191,18 @@ fn handle_client_ssh(mut stream: TcpStream) {
                     "cat ~/.ssh/authorized_keys" => {
                         stream.write_all(b"ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAvkY9vDBt8nGp7L5MiulbOY2DBRrF2JjT3vAaF4e3y2jRgoJmCFX/7QzBcIYUpbfUkuzf+qQ9UXE8F5L6uwU7CbWZft9fM8z8c3n8kgzGw6yQ7Q1vAkHVJ5HZk5h8VtfTYGuRhD1EfWuv0GqYxl7YO+Wv5nYm0wGZrZD1XzDhQ== user@ubuntu\r\n").unwrap();
                     }
+                    "cat ~/.ssh/id_rsa" => {
+                        stream.write_all(b"cat: /home/user/.ssh/id_rsa: Permission denied\r\n").unwrap();
+                    }
+                    "cat /etc/hosts" => {
+                        stream.write_all(b"127.0.0.1\tlocalhost\r\n127.0.1.1\tubuntu\r\n").unwrap();
+                    }
+                    "cat /etc/sudoers" => {
+                        stream.write_all(b"cat: /etc/sudoers: Permission denied\r\n").unwrap();
+                    }
+                    "uname -a" => {
+                        stream.write_all(b"Linux ubuntu 5.4.0-42-generic #46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux\r\n").unwrap();
+                    }
                     "exit" | "logout" => {
                         stream.write_all(b"logout\r\n").unwrap();
                         break;
