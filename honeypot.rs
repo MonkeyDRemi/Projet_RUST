@@ -6,6 +6,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::collections::HashMap; 
 
 fn handle_client_ssh(mut stream: TcpStream) {
+    let mut log_file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("honeypot.log")
+        .expect("Erreur ouverture log");
+        
     println!("\n[+] Connexion SSH !");
     println!("Client: {}", stream.peer_addr().unwrap());
 
@@ -63,6 +69,12 @@ fn handle_client_ssh(mut stream: TcpStream) {
             }
             Ok(_) => {
                 let input = buffer.trim();
+                
+                let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+                
+                println!("[{}] [Commande reçue] {}", now.as_secs(), input);
+                writeln!(log_file, "[{}] [Commande reçue de {}] {}", 
+                    now.as_secs(), stream.peer_addr().unwrap(), input).unwrap();
 
                 match input {
                     "ls" => {
