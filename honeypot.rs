@@ -57,6 +57,10 @@ fn handle_client_ssh(mut stream: TcpStream) {
     directories.insert("/var", vec![]);
     
     loop {
+        if current_dir == "user"{
+            current_dir = "~".to_string();
+        }
+        
         let prompt = format!("user@ubuntu:{}$ ", current_dir);
         stream.write_all(prompt.as_bytes()).unwrap();
         stream.flush().unwrap();
