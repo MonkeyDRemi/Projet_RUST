@@ -203,6 +203,15 @@ fn handle_client_ssh(mut stream: TcpStream) {
                     "uname -a" => {
                         stream.write_all(b"Linux ubuntu 5.4.0-42-generic #46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux\r\n").unwrap();
                     }
+                    "cat backup.sh" => {
+                        if current_dir == "/tmp" {
+                            stream.write_all(b"#!/bin/bash\r\n").unwrap();
+                            stream.write_all(b"# Script de backup automatique - lance par cron\r\n").unwrap();
+                            stream.write_all(b"tar -czf /root/backup_$(date +%F).tar.gz /home/user\r\n").unwrap();
+                        } else {
+                            stream.write_all(b"cat: backup.sh: No such file or directory\r\n").unwrap();
+                        }
+                    }
                     "exit" | "logout" => {
                         stream.write_all(b"logout\r\n").unwrap();
                         break;
