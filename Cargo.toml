@@ -1,0 +1,12 @@
+# ~/Projet_RUST/Cargo.toml
+# ~/Projet_RUST/Projet_RUST/honeypot.rs
+[package]
+name = "honeypot"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "honeypot"
+path = "Projet_RUST/honeypot.rs"
+
+[dependencies]
